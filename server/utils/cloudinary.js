@@ -8,6 +8,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Call this function from any file with the file local path to upload the file to cloudinary.
+
+/**
+ * Uploads a local file to Cloudinary and deletes it locally afterward.
+ * @param {string} localFilePath - Path to the file stored temporarily on server.
+ * @returns {object|null} Cloudinary upload result or null on failure.
+ */
+
 export const uploadToCloudinary = async function (localFilePath) {
   try {
     // Upload an image
