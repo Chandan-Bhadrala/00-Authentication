@@ -1,5 +1,9 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs/promises";
+import dotenv from "dotenv";
+
+// Load environment variables from .env file
+dotenv.config({ path: "./.env" });
 
 // Configuration
 cloudinary.config({

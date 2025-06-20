@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     },
     username: {
       type: String,
-      min: [6, "Username must be at least 6 characters"],
+      minlength: [6, "Username must be at least 6 characters"],
       required: true,
       unique: true,
       lowercase: true,
@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema(
 
     avatarURL: {
       type: String,
+      required: true,
     },
     isVerified: {
       type: Boolean,
@@ -41,8 +42,16 @@ const userSchema = new mongoose.Schema(
     },
     emailVerifyTokenExpiry: {
       type: Date,
+      expires: 0, // This will delete the whole document once date stored in the emailVerifyTokenExpiry is gt Date.now(). This way DB is not filled with the stale data of unverified user's documents.
+    },
+    forgotVerifyToken: {
+      type: String,
+    },
+    forgotVerifyTokenExpiry: {
+      type: Date,
     },
     role: {
+      type: String,
       enum: ["super admin", "admin", "user"],
       default: "user",
     },

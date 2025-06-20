@@ -1,12 +1,12 @@
 TODO:
 
 1. ~~Setup multer to handle profile pic in the form data.~~
-2. Setup cloudinary to upload the profile pic properly & delete the one on the server.
+~~2. Setup cloudinary to upload the profile pic properly & delete the one on the server.~~
 3. Setup MailTrap to send verification email.
 
 ---
 
-# Authentication Project
+# Authentication56 Project
 
 ## Need to include
 

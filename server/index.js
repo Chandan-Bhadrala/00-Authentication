@@ -5,9 +5,10 @@ import express, { urlencoded } from "express";
 import helmet from "helmet";
 import connectDB from "./db/dbConnect.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
+import userRouter from "./routes/user.route.js";
 
 // Load environment variables from .env file
-dotenv.config();
+dotenv.config({ path: "./.env" });
 
 // Initialize Express app
 const app = express();
@@ -40,7 +41,6 @@ app.use(helmet());
 
 // routes configuration
 app.use("/api/v1/user", userRouter);
-
 
 // Health check route
 app.get("/api/v1/ping", (req, res) => {
