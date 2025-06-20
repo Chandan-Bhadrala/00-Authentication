@@ -3,6 +3,9 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { sendError } from "../utils/sendError.js";
 import { sendResponse } from "../utils/sendResponse.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
+import { generateOTP } from "../utils/tokenGenerator.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import { verificationEmailHTML } from "../emailTemplates/verificationEmail.js";
 
 export const signup = asyncHandler(async (req, res) => {
   // Extract info from the req body.
@@ -79,8 +82,15 @@ export const signup = asyncHandler(async (req, res) => {
       });
     }
 
-    // TODO: Generate & send an verify email. Use MailTrap SMTP services
-
+    // Generate & send a token to verify email.
+    const token = generateOTP(6);
+    sendEmail({
+      to: "c.bhadrala88@gmail.com",
+      subject: "Verification Email",
+      htmlTemplate: verificationEmailHTML,
+      token,
+      category: "Verification Email",
+    });
     // Create a user object & save into the DB.
     const user = new User({
       fullName,

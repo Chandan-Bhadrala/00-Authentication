@@ -1,27 +1,59 @@
+// server/utils/mailtrapClient.js
 import { MailtrapClient } from "mailtrap";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const TOKEN = process.env.MailTrap_API_KEY;
+// Setup __dirname in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// Load .env from root
+dotenv.config({ path: path.join(__dirname, "..", ".env") });
+
+// Init Mailtrap client
 const client = new MailtrapClient({
-  token: TOKEN,
+  token: process.env.MAILTRAP_API_KEY,
 });
 
+// Default sender
 const sender = {
   email: "hello@demomailtrap.co",
-  name: "Mailtrap Test",
+  name: "Authentication App",
 };
-const recipients = [
-  {
-    email: "c.bhadrala88@gmail.com",
-  },
-];
 
-client
-  .send({
-    from: sender,
-    to: recipients,
-    subject: "You are awesome!",
-    text: "Congrats for sending test email with Mailtrap!",
-    category: "Integration Test",
-  })
-  .then(console.log, console.error);
+/**
+ * Sends an email using Mailtrap
+ * @param {Object} options
+ * @param {string} options.to - Recipient email
+ * @param {string} options.subject - Email subject
+ * @param {string} options.htmlTemplate - HTML template string with {token}
+ * @param {string} options.token - Token to inject in template
+ * @param {string} options.category - Email category (optional)
+ */
+export const sendEmail = async ({
+  to = "c.bhadrala88@gmail.com",
+  subject,
+  htmlTemplate,
+  token,
+  category = "Verification Email",
+}) => {
+  try {
+    const finalHTML = htmlTemplate(token);
+
+    const response = await client.send({
+      from: sender,
+      to: [{ email: to }],
+      subject,
+      text: "Your email client does not support HTML.",
+      html: finalHTML,
+      category,
+    });
+
+    console.log("✅ Email sent:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ Failed to send email:", error);
+    throw new Error("Failed to send email");
+  }
+};
