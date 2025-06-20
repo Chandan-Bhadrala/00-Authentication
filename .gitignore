@@ -1,0 +1,50 @@
+# Node.js Backend
+node_modules
+package-lock.json
+npm-debug.log*
+yarn.lock
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Front-end (Common - Adjust based on your specific framework)
+dist
+build
+.parcel-cache
+.next
+.nuxt
+.cache
+.temp
+.tmp
+dist-*
+build-*
+tmp-*
+temp-*
+
+# General OS and Editor/IDE Specific
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*.iml
+.sourcemaps/
+
+# Logs and Temporary Files
+*.log
+*.out
+*.dump
+
+# Deployment Specific
+/deploy
+/build_output
+
+# Optional - If using specific testing frameworks
+coverage
+report
+
+# Optional - If using specific package managers other than npm/yarn
+pnpm-lock.yaml
