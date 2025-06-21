@@ -6,6 +6,7 @@ import helmet from "helmet";
 import connectDB from "./db/dbConnect.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import userRouter from "./routes/user.route.js";
+import { globalLimiter } from "./utils/globalRateLimiter.js";
 
 // Load environment variables from .env file
 dotenv.config({ path: "./.env" });
@@ -27,6 +28,7 @@ app.use(
   })
 );
 
+app.use(globalLimiter); // Apply to all incoming requests
 // Middleware to enable CORS (Cross-Origin Resource Sharing)
 app.use(
   cors({

@@ -73,6 +73,14 @@ export const signup = asyncHandler(async (req, res) => {
         "File uploaded to the cloudinary & its response",
         cloudinaryResponse
       );
+
+      if (!cloudinaryResponse || !cloudinaryResponse.secure_url) {
+        return sendError(res, {
+          statusCode: 400,
+          message:
+            "Failed to upload user profile pic to CDN & registering user, please try again later..",
+        });
+      }
     } catch (error) {
       console.log(error);
       return sendError(res, {
@@ -84,13 +92,22 @@ export const signup = asyncHandler(async (req, res) => {
 
     // Generate & send a token to verify email.
     const token = generateOTP(6);
-    sendEmail({
-      to: "c.bhadrala88@gmail.com",
-      subject: "Verification Email",
-      htmlTemplate: verificationEmailHTML,
-      token,
-      category: "Verification Email",
-    });
+    try {
+      await sendEmail({
+        to: "c.bhadrala88@gmail.com",
+        subject: "Verification Email",
+        htmlTemplate: verificationEmailHTML,
+        token,
+        category: "Verification Email",
+      });
+    } catch (error) {
+      console.log(error, "Error sending the email with verification token.");
+      return sendError(res, {
+        statusCode: 400,
+        message:
+          "Failed to send the email verification token. User not registered, please try again later.",
+      });
+    }
     // Create a user object & save into the DB.
     const user = new User({
       fullName,
