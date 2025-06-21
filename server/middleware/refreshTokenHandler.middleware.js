@@ -1,10 +1,13 @@
 import jwt from "jsonwebtoken";
-import { sendError } from "./sendError";
-import asyncHandler from "./asyncHandler";
-import { User } from "../models/user.model";
+import { sendError } from "../utils/sendError.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import { User } from "../models/user.model.js";
+import { createJWT } from "./jwt.middleware.js";
 
-export const refreshToken = asyncHandler(async (req, res) => {
+// This function sets up access token in the authorization header of res object & refresh token in the res object cookie & in the DB & return "true" if everything goes well.
+export const refreshTokenHandler = async (req, res, refreshToken) => {
   try {
+    let decodedToken;
     try {
       decodedToken = jwt.verify(refreshToken, process.env.JWT_SECRET);
     } catch (error) {
@@ -48,6 +51,7 @@ export const refreshToken = asyncHandler(async (req, res) => {
     ).select("-password");
 
     res.user = user;
+    return true;
   } catch (error) {
     console.log(error, "Error while refreshing refresh token.");
     return sendError(res, {
@@ -56,4 +60,4 @@ export const refreshToken = asyncHandler(async (req, res) => {
         "Server Error while refreshing refresh token, please try again later.",
     });
   }
-});
+};

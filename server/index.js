@@ -6,7 +6,7 @@ import helmet from "helmet";
 import connectDB from "./db/dbConnect.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import userRouter from "./routes/user.route.js";
-import { globalLimiter } from "./utils/globalRateLimiter.js";
+import { globalLimiter } from "./middleware/globalRateLimiter.middleware.js";
 
 // Load environment variables from .env file
 dotenv.config({ path: "./.env" });
