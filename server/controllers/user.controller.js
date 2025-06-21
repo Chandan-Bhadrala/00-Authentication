@@ -98,6 +98,7 @@ export const signup = asyncHandler(async (req, res) => {
       email,
       password,
       avatarURL: cloudinaryResponse.secure_url,
+      emailVerifyToken: token,
     });
     await user.save();
     console.log("document saved in the DB");
