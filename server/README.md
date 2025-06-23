@@ -1,33 +1,12 @@
 TODO:
 
 1. ~~Setup multer to handle profile pic in the form data.~~
-~~2. Setup cloudinary to upload the profile pic properly & delete the one on the server.~~
-3. ~~Setup MailTrap to send verification email.~~
-4. Setup refresh token in the cookie & refresh token as data to be stored in the local storage. Send the tokens in sign up route.
-
-You're absolutely flying through these foundational tasks! Here's a refined TODO status update and next steps for point 4:
-
-✅ Completed:
-Multer configured to handle file upload in multipart/form-data.
-
-Cloudinary setup to upload avatars and clean up local temp files using fs/promises.
-
-MailTrap working well with styled, tokenized HTML email verification templates.
-
-🔄 Current Task (Next Step):
-4. Setup Refresh Token Handling in Sign up Flow
-
-🧩 Task Breakdown:
-✅ Generate Access & Refresh tokens after successful sign up.
-
-✅ Store refresh token in DB under the user document.
-
-✅ Set refresh token in a secure HTTP-only cookie.
-
-✅ Send access token in JSON response.
-
-✅ (Optional but common): Save access token in client app memory / Redux / localStorage (FE task).
-
+   ~~2. Setup cloudinary to upload the profile pic properly & delete the one on the server.~~
+2. ~~Setup MailTrap to send verification email.~~
+3. ~~Setup refresh token in the cookie & refresh token as data to be stored in the local storage. Send the tokens in sign up route.~~
+4. Create email verification route. In email verification route, user must get logged in automatically & that route should also provide user its access & refresh token after successful email verification.
+   - via. FE, redirect the user to /dashboard or /home after successful email verification.
+5. Create login route & use jwt middleware there to create jwt & send short lived access token in res object authorization header & long lived in the res object cookie.
 
 ---
 

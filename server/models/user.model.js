@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema(
     emailVerifyTokenExpiry: {
       type: Date,
       expires: 0, // This will delete the whole document once date stored in the emailVerifyTokenExpiry is gt Date.now(). This way DB is not filled with the stale data of unverified user's documents.
-       default: () => Date.now() + (0.5 * 60 * 60 * 1000), // Set default to 30 minutes from now. From the moment this user doc is created.
+      default: () => Date.now() + 0.5 * 60 * 60 * 1000, // Set default to 30 minutes from now. From the moment this user doc is created.
     },
     forgotVerifyToken: {
       type: String,
