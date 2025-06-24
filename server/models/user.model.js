@@ -51,6 +51,11 @@ const userSchema = new mongoose.Schema(
     forgotVerifyTokenExpiry: {
       type: Date,
     },
+    // This marks when user can request another token resend.
+    tokenResendCoolDownExpiry: {
+      type: Date,
+      default: null,
+    },
     role: {
       type: String,
       enum: ["super admin", "admin", "user"],
@@ -63,6 +68,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Hash user password. Pre-save event. Only if, password is modified/updated.
 userSchema.pre("save", async function (next) {
   // Hash the password before saving
   if (this.isModified("password")) {
@@ -71,4 +77,8 @@ userSchema.pre("save", async function (next) {
   next(); // Pass control to the next middleware or save operation
 });
 
+// Creating a method on the user object for comparing password saved in the DB for the user.
+userSchema.methods.isPasswordCorrect = async function (password) {
+  return await bcryptjs.compare(password, this.password);
+};
 export const User = mongoose.model("User", userSchema);

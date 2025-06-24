@@ -10,19 +10,20 @@ export const refreshTokenHandler = async (req, res, refreshToken) => {
   try {
     let decodedToken;
     try {
+      // 01. Verify the refresh token.
       decodedToken = jwt.verify(refreshToken, process.env.JWT_SECRET);
     } catch (error) {
-      console.log(error, "Invalid accessToken.");
+      console.log(error, "Invalid refresh token.");
       return sendError(res, {
         statusCode: 401,
         message: "Invalid credentials, please login again.",
       });
     }
 
-    // Adding user decoded id in req object.
+    // 02. Adding user decoded id in req object.
     req.userId = decodedToken.id;
 
-    // Creating new access token & adding it in the res object for next controller.
+    // 03. Creating new access token & adding it in the res object for next controller.
     const newAccessToken = createJWT({
       id: decodedToken.id,
       expiresIn: "1h",
@@ -30,14 +31,14 @@ export const refreshTokenHandler = async (req, res, refreshToken) => {
 
     res.header("Authorization", `Bearer ${newAccessToken}`);
 
-    // Setting up refreshed refresh token in the user cookies
+    // 04. Setting up refreshed refresh token in the user cookies
     const newRefreshToken = createJWT({
       id: decodedToken.id,
       expiresIn: "30d",
     });
     res.cookie("refreshToken", newRefreshToken, CookieOptions);
 
-    // Updating/Refreshing user refresh token in the DB.
+    // 05. Updating/Refreshing user refresh token in the DB too.
     const user = await User.findByIdAndUpdate(
       decodedToken.id,
       {
@@ -46,7 +47,7 @@ export const refreshTokenHandler = async (req, res, refreshToken) => {
       { new: true }
     ).select("-password");
 
-    res.user = user;
+    req.user = user;
     return true;
   } catch (error) {
     console.log(error, "Error while refreshing refresh token.");

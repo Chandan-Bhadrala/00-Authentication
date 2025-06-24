@@ -3,6 +3,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { sendError } from "../utils/sendError.js";
 import { refreshTokenHandler } from "./refreshTokenHandler.middleware.js";
 import ApiError from "../utils/ApiError.js";
+import { User } from "../models/user.model.js";
 
 // Generic function to create a JWT token.
 export const createJWT = ({ id, expiresIn }) => {
@@ -42,11 +43,13 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     }
     let decodedToken = "";
 
-    // If there is access token, then decode it and populate the req token with the user Id.
+    // If there is access token, then decode it and populate the req token with the user Id & user object.
     if (accessToken) {
       try {
         decodedToken = jwt.verify(accessToken, process.env.JWT_SECRET);
         req.userId = decodedToken.id;
+        const user = await User.findOne({ _id: req.userId });
+        req.user = user;
         return next();
       } catch (error) {
         console.log(error, "Invalid accessToken.");

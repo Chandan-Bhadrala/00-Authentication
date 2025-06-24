@@ -43,7 +43,7 @@ export const sendEmail = async ({
 
     const response = await client.send({
       from: sender,
-      to: [{ email: to }],
+      to: [{ email: to.toLowerCase() }],
       subject,
       text: "Your email client does not support HTML.",
       html: finalHTML,
