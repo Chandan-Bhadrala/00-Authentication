@@ -1,7 +1,7 @@
 import { Upload, User, Mail, Lock, Eye } from "lucide-react";
 import Input from "../components/Input";
 import { Link } from "react-router-dom";
-const Signup = () => {
+const Register = () => {
   return (
     <main className="flex bg-black justify-center items-center min-h-screen ">
       {/* Card - starts */}
@@ -63,4 +63,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default Register;
