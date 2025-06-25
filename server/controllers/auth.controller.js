@@ -135,7 +135,7 @@ export const register = asyncHandler(async (req, res) => {
     return sendResponse(res, {
       statusCode: 201,
       message: "User created successfully",
-      data: { ...user._doc, password: undefined }, // Can't spread ...user. As user is a mongoose document which contains metadata too. user is not a plain JS object, rather user is a mongoose document.
+      data: user,
     });
   } catch (error) {
     console.log(error, "Internal server error while registering user.");
@@ -174,10 +174,12 @@ export const verifyEmail = asyncHandler(async (req, res) => {
     });
   }
 
-  const verificationTokenFromDB = userDetailsFromDB.emailVerifyToken;
-
   // 03. Compare the email verification token sent by the FE with the one stored in the DB against the same user.
-  if (verificationTokenFromDB !== emailVerifyToken) {
+  const tokenMatch = await userDetailsFromDB.isTokenMatch(
+    emailVerifyToken,
+    "emailVerifyToken"
+  );
+  if (!tokenMatch) {
     return sendError(res, {
       statusCode: 400,
       message: "Invalid email verification token.",
@@ -203,6 +205,7 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   return sendResponse(res, {
     statusCode: 200,
     message: "User verified successfully",
+    data: user,
   });
 });
 
@@ -320,7 +323,7 @@ export const login = asyncHandler(async (req, res) => {
     }
 
     // 02. Match password
-    const verifyPassword = await user.isPasswordCorrect(password);
+    const verifyPassword = await user.isTokenMatch(password, "password");
 
     if (!verifyPassword) {
       return sendError(res, {
@@ -337,13 +340,13 @@ export const login = asyncHandler(async (req, res) => {
       });
     }
 
-    // 04. Update the refresh token in the DB for the user.
-    user.refreshToken = refreshToken;
-    await user.save();
-
-    // 05. Sent back the access token in the authorization header & refresh token in the cookie.
+    // 04. Sent back the access token in the authorization header & refresh token in the cookie.
     const accessToken = createJWT({ id: user._id, expiresIn: "1h" });
     const refreshToken = createJWT({ id: user._id, expiresIn: "30d" });
+
+    // 05. Update the refresh token in the DB for the user.
+    user.refreshToken = refreshToken;
+    await user.save();
 
     res.header("Authorization", `Bearer ${accessToken}`);
     res.cookie("refreshToken", refreshToken, CookieOptions);
@@ -390,7 +393,8 @@ export const logout = asyncHandler(async (req, res) => {
 // 06. Changing/Updating Password Controller.
 export const changePassword = asyncHandler(async (req, res) => {
   // 01. Extract email, oldPassword & newPassword & confirmPassword from the req.body & check newPassword === confirmPassword, if not early return with sendError.
-  const { email, oldPassword, newPassword, confirmPassword, user } = req.body;
+  const { email, oldPassword, newPassword, confirmPassword } = req.body;
+  const user = req.user;
   if (
     [email, oldPassword, newPassword, confirmPassword].some(
       (field) => field.trim() === ""
@@ -409,29 +413,174 @@ export const changePassword = asyncHandler(async (req, res) => {
   }
   // 02. Check for user tokens & existence in the DB by applying verifyJWT middleware & extract user details from the req object populated by the verifyJWT middleware. # Done above.
 
-  // 03. Compare oldPassword using user.isPassword(oldPassword), to check if sent password is correct. Otherwise return user on password match failure.
-  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+  // 03. Compare oldPassword using user.isTokenMatch(oldPassword, "password"), to check if sent password is correct. Otherwise return user on password match failure.
+  const isPasswordCorrect = await user.isTokenMatch(oldPassword, "password");
   if (!isPasswordCorrect) {
-    sendError(res, { statusCode: 400, message: "Old password is incorrect." });
+    return sendError(res, {
+      statusCode: 400,
+      message: "Old password is incorrect.",
+    });
   }
   // 04. If tokens, email, oldPassword. All is good as per the DB. Change password field in the DB with the newPassword in the DB.
+
   user.password = newPassword;
+  user.refreshToken = "";
   await user.save();
+
+  // 05. Clear user header & cookie for the tokens.
+  res.clearCookie("refreshToken", CookieOptions);
+  res.setHeader("Authorization", "");
+
   // 05. Sent back the sendResponse with user details "- password".
   sendResponse(res, {
     statusCode: 200,
     message: "Password updated successfully",
-    data: {
-      _id: user._id,
-      fullName: user.fullName,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      avatarURL: user.avatarURL,
-      isVerified: user.isVerified,
-    },
+    data: user,
   });
 });
 
-// 07. Controller logic for email link to create a fresh password again upon forgetting old password.
-export const forgotPassword = asyncHandler(async (req, res) => {});
+// 07a. Controller logic to email OTP to create a fresh password again upon forgetting the password.
+export const requestForgotPasswordOTP = asyncHandler(async (req, res) => {
+  // 01. Extract email from the req.body & check if user exists in our DB.
+  const { email } = req.body;
+
+  if (!email || typeof email !== "string") {
+    return sendError(res, {
+      statusCode: 400,
+      message: "Email is required.",
+    });
+  }
+  try {
+    // 01a. Check if user exists
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return sendError(res, {
+        statusCode: 400,
+        message: "User does't exists. Please register first.",
+      });
+    }
+    // 02. Generate OTP. Save it in the DB & send it to the client using sendEmail function.
+    const OTP = generateOTP(6);
+    user.forgotPasswordVerifyToken = OTP;
+    user.forgotPasswordTokenExpiry = EMAIL_TOKEN_EXPIRY_MS;
+    await sendEmail({
+      to: "c.bhadrala88@gmail.com",
+      subject: "Forgot Password OTP",
+      htmlTemplate: verificationEmailHTML,
+      token: OTP,
+      category: "Forgot Password",
+    });
+    await user.save();
+
+    return sendResponse(res, { statusCode: 200, message: "OTP mailed." });
+  } catch (error) {
+    console.log(error);
+    return sendError(res, {
+      statusCode: 500,
+      message: "Failed to mail forgot password OTP, please try again later.",
+    });
+  }
+});
+
+// 07b. Controller logic to verify forgot password emailed OTP.
+export const verifyForgotPasswordOTP = asyncHandler(async (req, res) => {
+  // 01. Extract {email, OTP} from the req.body.
+  const { email, OTP } = req.body;
+  if (!email || typeof email !== "string" || !OTP) {
+    return sendError(res, {
+      statusCode: 400,
+      message: "Email & OTP is required.",
+    });
+  }
+  // 02. Check if user exists in the DB. If not early return with message, "No user exists, please register first."
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) {
+    return sendError(res, {
+      statusCode: 400,
+      message: "User doesn't exist, please register first.",
+    });
+  }
+  // 03a. If user exists & OTP is correct/matched.
+  if (user.forgotPasswordTokenExpiry < Date.now()) {
+    return sendError(res, {
+      statusCode: 400,
+      message: "OTP expired, Please request a new one.",
+    });
+  }
+
+  const isMatch = await user.isTokenMatch(OTP, "forgotPasswordVerifyToken");
+  if (!isMatch) {
+    return sendError(res, { statusCode: 400, message: "Invalid OTP" });
+  }
+  // Send confirmation to FE to redirect user to forgot password page to reset the password.
+  sendResponse(res, {
+    statusCode: 200,
+    message:
+      "Email & token verified successfully, redirect user to reset password page",
+    data: user,
+  });
+});
+
+// 07c. Controller logic to reset password using emailed OTP to create a fresh password again upon forgetting old password.
+export const resetForgotPassword = asyncHandler(async (req, res) => {
+  // 01. Extract {email, OTP, newPassword, confirmPassword} from the req.body.
+  const { email, OTP, newPassword, confirmPassword } = req.body;
+  if (
+    [email, OTP, newPassword, confirmPassword].some(
+      (field) => typeof field !== "string" || field.trim() === ""
+    )
+  ) {
+    return sendError(res, {
+      statusCode: 400,
+      message: "All fields are required.",
+    });
+  }
+
+  if (newPassword !== confirmPassword) {
+    return sendError(res, {
+      statusCode: 400,
+      message: "New password must match confirm password",
+    });
+  }
+  // 02. Check again, if user exists in the DB. If not early return with message, "No user exists, please register first."
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) {
+    return sendError(res, {
+      statusCode: 400,
+      message: "User doesn't exists, please register first.",
+    });
+  }
+  // 03. Check again, if user exists & OTP is correct/matched, send confirmation to FE to redirect user to forgot password page to reset the password. Otherwise return response, "Invalid request".
+  if (user.forgotPasswordTokenExpiry < Date.now()) {
+    return sendError(res, {
+      statusCode: 400,
+      message: "OTP has expired. Please request a new one.",
+    });
+  }
+
+  const isMatch = await user.isTokenMatch(OTP, "forgotPasswordVerifyToken");
+  if (!isMatch) {
+    return sendError(res, { statusCode: 400, message: "Invalid OTP" });
+  }
+  // 04. Update the user password & set the tokens. Ask, FE to redirect to home page.
+  user.password = newPassword;
+
+  // 05. Create & send back the access token in the authorization header & refresh token in the cookie & update the refresh token in the DB.
+  const accessToken = createJWT({ id: user._id, expiresIn: "1h" });
+  const refreshToken = createJWT({ id: user._id, expiresIn: "30d" });
+
+  user.refreshToken = refreshToken;
+  user.forgotPasswordVerifyToken = undefined;
+  user.forgotPasswordTokenExpiry = undefined;
+  await user.save();
+
+  res.header("Authorization", `Bearer ${accessToken}`);
+  res.cookie("refreshToken", refreshToken, CookieOptions);
+
+  // 06. Send back user data.
+  return sendResponse(res, {
+    statusCode: 200,
+    message: "User logged in successfully",
+    data: user,
+  });
+});

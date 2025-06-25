@@ -1,9 +1,8 @@
 import jwt from "jsonwebtoken";
-import { sendError } from "../utils/sendError.js";
-import asyncHandler from "../utils/asyncHandler.js";
-import { User } from "../models/user.model.js";
-import { createJWT } from "./jwt.middleware.js";
 import { CookieOptions } from "../constants/constants.js";
+import { User } from "../models/user.model.js";
+import { sendError } from "../utils/sendError.js";
+import { createJWT } from "./jwt.middleware.js";
 
 // This function sets up access token in the authorization header of res object & refresh token in the res object cookie & in the DB & return "true" if everything goes well.
 export const refreshTokenHandler = async (req, res, refreshToken) => {
@@ -45,7 +44,7 @@ export const refreshTokenHandler = async (req, res, refreshToken) => {
         refreshToken: newRefreshToken,
       },
       { new: true }
-    ).select("-password");
+    );
 
     req.user = user;
     return true;
