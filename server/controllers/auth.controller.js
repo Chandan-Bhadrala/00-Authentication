@@ -12,7 +12,7 @@ import {
   EMAIL_TOKEN_EXPIRY_MS,
 } from "../constants/constants.js";
 
-// 01. Controller for Signing up.
+// 01. Register Controller.
 export const register = asyncHandler(async (req, res) => {
   // 00a. Extract info from the req body.
   const { fullName, username, email, password } = req.body;
@@ -146,7 +146,7 @@ export const register = asyncHandler(async (req, res) => {
   }
 });
 
-// 02. Controller logic for verifying email after signing up.
+// 02. Verifying email after signing up Controller.
 export const verifyEmail = asyncHandler(async (req, res) => {
   // 01. Fetch the
   // a. "email verification token" &
@@ -293,7 +293,7 @@ export const resendEmailVerificationToken = asyncHandler(async (req, res) => {
   }
 });
 
-// 04. Controller logic for logging in to the app.
+// 04. Logging in Controller logic.
 export const login = asyncHandler(async (req, res) => {
   // 00a. Extract info from the req body.
   const { email, password } = req.body;
@@ -363,7 +363,7 @@ export const login = asyncHandler(async (req, res) => {
   }
 });
 
-// 05. Controller logic for logging out of the app.
+// 05. Logging out Controller logic.
 export const logout = asyncHandler(async (req, res) => {
   // 01a. Check for access token || refresh token in the headers and in cookie respectively.
   // 01b. Applied verifyJWT middleware on the logout route for verification of the user.
@@ -387,8 +387,51 @@ export const logout = asyncHandler(async (req, res) => {
   });
 });
 
-// Controller logic for changing/updating password.
-export const changePassword = asyncHandler(async (req, res) => {});
+// 06. Changing/Updating Password Controller.
+export const changePassword = asyncHandler(async (req, res) => {
+  // 01. Extract email, oldPassword & newPassword & confirmPassword from the req.body & check newPassword === confirmPassword, if not early return with sendError.
+  const { email, oldPassword, newPassword, confirmPassword, user } = req.body;
+  if (
+    [email, oldPassword, newPassword, confirmPassword].some(
+      (field) => field.trim() === ""
+    )
+  ) {
+    return sendError(res, {
+      statusCode: 400,
+      message: "All fields are required.",
+    });
+  }
+  if (newPassword !== confirmPassword) {
+    return sendError(res, {
+      statusCode: 400,
+      message: "New password & confirm password must be same.",
+    });
+  }
+  // 02. Check for user tokens & existence in the DB by applying verifyJWT middleware & extract user details from the req object populated by the verifyJWT middleware. # Done above.
 
-// Controller logic for email link to create a fresh password again upon forgetting.
+  // 03. Compare oldPassword using user.isPassword(oldPassword), to check if sent password is correct. Otherwise return user on password match failure.
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+  if (!isPasswordCorrect) {
+    sendError(res, { statusCode: 400, message: "Old password is incorrect." });
+  }
+  // 04. If tokens, email, oldPassword. All is good as per the DB. Change password field in the DB with the newPassword in the DB.
+  user.password = newPassword;
+  await user.save();
+  // 05. Sent back the sendResponse with user details "- password".
+  sendResponse(res, {
+    statusCode: 200,
+    message: "Password updated successfully",
+    data: {
+      _id: user._id,
+      fullName: user.fullName,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      avatarURL: user.avatarURL,
+      isVerified: user.isVerified,
+    },
+  });
+});
+
+// 07. Controller logic for email link to create a fresh password again upon forgetting old password.
 export const forgotPassword = asyncHandler(async (req, res) => {});

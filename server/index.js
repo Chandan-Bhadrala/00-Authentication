@@ -5,7 +5,7 @@ import express, { urlencoded } from "express";
 import helmet from "helmet";
 import connectDB from "./db/dbConnect.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
-import userRouter from "./routes/user.route.js";
+import userRouter from "./routes/auth.route.js";
 import { globalLimiter } from "./middleware/globalRateLimiter.middleware.js";
 
 // Load environment variables from .env file
