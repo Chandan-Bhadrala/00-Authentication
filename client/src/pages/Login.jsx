@@ -1,8 +1,32 @@
 import { Eye, Lock, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import Input from "../components/Input";
+import { useForm } from "react-hook-form";
 
 const Login = () => {
+  // Setting up react-hook-form
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  // Form submission handler
+  const onSubmit = (data) => {
+    alert(`Form submitted with data: ${JSON.stringify(data)}`);
+  };
+
+  // RTK POST Query to login user.
+ const [
+    loginUser,
+    {
+      data: loginData,
+      error: loginError,
+      isLoading: loginIsLoading,
+      isSuccess: loginIsSuccess,
+    },
+  ] = useLoginUserMutation();
+
   return (
     <main className="flex bg-black justify-center items-center min-h-screen ">
       {/* Card - starts */}

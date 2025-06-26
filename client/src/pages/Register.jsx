@@ -1,7 +1,33 @@
 import { Upload, User, Mail, Lock, Eye } from "lucide-react";
 import Input from "../components/Input";
 import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { useRegisterUserMutation } from "../features/auth/authApi";
+
 const Register = () => {
+  // Setting up react-hook-form
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  // Form submission handler
+  const onSubmit = (data) => {
+    alert(`Form submitted with data: ${JSON.stringify(data)}`);
+  };
+
+  // RTK POST Query to register user.
+  const [
+    registerUser,
+    {
+      data: registerData,
+      error: registerError,
+      isLoading: registerIsLoading,
+      isSuccess: registerIsSuccess,
+    },
+  ] = useRegisterUserMutation();
+
   return (
     <main className="flex bg-black justify-center items-center min-h-screen ">
       {/* Card - starts */}
