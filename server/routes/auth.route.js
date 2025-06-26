@@ -1,17 +1,19 @@
 import { Router } from "express";
 import {
-  logout,
-  resendEmailVerificationToken,
-  login,
-  register,
-  verifyEmail,
-  forgotPassword,
   changePassword,
   getUserProfile,
+  login,
+  logout,
+  register,
+  requestForgotPasswordOTP,
+  resendEmailVerificationToken,
+  resetForgotPassword,
+  verifyEmail,
+  verifyForgotPasswordOTP,
 } from "../controllers/auth.controller.js";
+import { verifyJWT } from "../middleware/jwt.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
 import { signupLimiter } from "../middleware/rateLimiter.middleware.js";
-import { verifyJWT } from "../middleware/jwt.middleware.js";
 
 const router = Router();
 
@@ -19,10 +21,23 @@ router.post("/register", signupLimiter, upload.single("avatarFile"), register);
 router.post("/verify-email", verifyEmail);
 router.post("/resend-verify-email", resendEmailVerificationToken);
 router.post("/login", login);
-router.post("/logout", verifyJWT, logout);
+router.get("/logout", verifyJWT, logout);
 router.post("/change-password", signupLimiter, verifyJWT, changePassword);
-router.post("/forgot-password", signupLimiter, verifyJWT, forgotPassword);
-router.get("/user-profile",  verifyJWT, getUserProfile);
 
+// Routes for forgot password flow
+router.post(
+  "/request-forgot-password-OTP",
+  signupLimiter,
+  requestForgotPasswordOTP
+);
+router.post(
+  "/verify-forgot-password-OTP",
+  signupLimiter,
+  verifyForgotPasswordOTP
+);
+router.post("/forgot-password", signupLimiter, resetForgotPassword);
+
+// Get User profile
+router.get("/user-profile", verifyJWT, getUserProfile);
 
 export default router;

@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { userLoggedIn, userLoggedOut } from "../authSlice";
+import { userLoggedIn, userLoggedOut } from "./authSlice";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const USER_API = `${BASE_URL}/user/`;
