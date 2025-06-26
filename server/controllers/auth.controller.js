@@ -16,7 +16,6 @@ import {
 export const register = asyncHandler(async (req, res) => {
   // 00a. Extract info from the req body.
   const { fullName, username, email, password, confirmPassword } = req.body;
-  console.log(fullName, username, email);
   const avatarFile = req.file;
 
   // console.log(req.file); // Information about the uploaded file
@@ -24,11 +23,10 @@ export const register = asyncHandler(async (req, res) => {
   // 00b. Validate all required files are sent by the FE.
   if (
     [fullName, email, username, password].some(
-      (field) => field?.trim() === ""
+      (field) => typeof field !== "string" || field?.trim() === ""
     ) ||
     !avatarFile // avatarFile can't be up in the array for checking, as avatarFile is an object & not a string.
   ) {
-    console.log(fullName, email, username, password);
     return sendError(res, {
       statusCode: 400,
       message: "All fields are required.",
@@ -404,7 +402,7 @@ export const changePassword = asyncHandler(async (req, res) => {
   const user = req.user;
   if (
     [email, oldPassword, newPassword, confirmPassword].some(
-      (field) => field.trim() === ""
+      (field) => typeof field !== "string" || field.trim() === ""
     )
   ) {
     return sendError(res, {
