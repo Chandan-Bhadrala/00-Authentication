@@ -14,10 +14,11 @@ export const authApi = createApi({
   endpoints: (builder) => ({
     registerUser: builder.mutation({
       // Api Call to register the user.
-      query: (inputData) => ({
+      query: (formData) => ({
         url: "register",
         method: "POST",
-        body: inputData,
+        body: formData,
+        formData: true,
       }),
     }),
     loginUser: builder.mutation({

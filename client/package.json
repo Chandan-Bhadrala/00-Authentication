@@ -16,7 +16,6 @@
     "lucide-react": "^0.516.0",
     "npm": "^11.4.2",
     "react": "^19.1.0",
-    "react-avatar": "^5.0.3",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.58.1",
     "react-redux": "^9.2.0",

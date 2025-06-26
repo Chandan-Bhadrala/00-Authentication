@@ -68,7 +68,7 @@ const Login = () => {
         {/* Bottom row - starts */}
         <p className="text-[#f2ebeb] mt-2 text-md">
           Don't have an account?{" "}
-          <Link className="text-blue-400 hover:text-white" to={"/signup"}>
+          <Link className="text-blue-400 hover:text-white" to={"/register"}>
             Sign up
           </Link>
         </p>

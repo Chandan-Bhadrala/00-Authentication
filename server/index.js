@@ -16,17 +16,17 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // -----------Default Middlewares starts here----------- //
-app.use(express.json());
+// app.use(express.json());
 app.use(cookieParser());
-app.use(
-  urlencoded({
-    extended: true, // allows rich objects and arrays to be encoded
-    inflate: true, // allows compressed bodies to be inflated
-    limit: "1mb", // limits the body size
-    parameterLimit: 5000, // limits the number of parameters
-    type: "application/x-www-form-urlencoded", // accepts only form-urlencoded type
-  })
-);
+// app.use(
+//   urlencoded({
+//     extended: true, // allows rich objects and arrays to be encoded
+//     inflate: true, // allows compressed bodies to be inflated
+//     limit: "1mb", // limits the body size
+//     parameterLimit: 5000, // limits the number of parameters
+//     type: "application/x-www-form-urlencoded", // accepts only form-urlencoded type
+//   })
+// );
 
 app.use(globalLimiter); // Apply to all incoming requests
 // Middleware to enable CORS (Cross-Origin Resource Sharing)

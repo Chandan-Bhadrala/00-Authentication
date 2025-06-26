@@ -6,6 +6,7 @@ const Input = ({
   type = "text",
   min,
   max,
+  ...rest // 👈 Accept react-hook-form props (name, onChange, ref, etc.)
 }) => {
   return (
     <div className="flex flex-col items-start gap-y-2 text-[#f2ebeb] mb-4">
@@ -22,6 +23,7 @@ const Input = ({
             type={type}
             min={min}
             max={max}
+            {...rest} // ✅ Spread react-hook-form props here
           />
           <div className="text-gray-400 hover:text-[#f2ebeb] cursor-pointer">
             <Icon2 size={20} />
@@ -37,6 +39,7 @@ const Input = ({
             type={type}
             min={min}
             max={max}
+             {...rest} // ✅ Spread here too
           />
         </div>
       )}
