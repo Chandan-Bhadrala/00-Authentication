@@ -7,6 +7,7 @@ import {
   verifyEmail,
   forgotPassword,
   changePassword,
+  getUserProfile,
 } from "../controllers/auth.controller.js";
 import { upload } from "../middleware/multer.middleware.js";
 import { signupLimiter } from "../middleware/rateLimiter.middleware.js";
@@ -21,5 +22,7 @@ router.post("/login", login);
 router.post("/logout", verifyJWT, logout);
 router.post("/change-password", signupLimiter, verifyJWT, changePassword);
 router.post("/forgot-password", signupLimiter, verifyJWT, forgotPassword);
+router.get("/user-profile",  verifyJWT, getUserProfile);
+
 
 export default router;

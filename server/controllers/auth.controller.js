@@ -584,3 +584,24 @@ export const resetForgotPassword = asyncHandler(async (req, res) => {
     data: user,
   });
 });
+
+// 08. Get User profile
+export const getUserProfile = asyncHandler(async (req, res) => {
+  try {
+    const { user } = req;
+    if (!user) {
+      return sendError(res, { statusCode: 401, message: "User not found." });
+    }
+    return sendResponse(res, {
+      statusCode: 200,
+      message: "User details retrieved successfully.",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Error in getUserProfile:", error);
+    return sendError(res, {
+      statusCode: 500,
+      message: "Failed to get user profile. please try again.",
+    });
+  }
+});
