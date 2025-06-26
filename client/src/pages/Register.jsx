@@ -78,8 +78,8 @@ const Register = () => {
         {/* Bottom row - starts */}
         <p className="text-[#f2ebeb] mt-4 text-md ">
           Already have an account?{" "}
-          <Link className="text-blue-400 hover:text-white" to={"/"}>
-            Sign in
+          <Link className="text-blue-400 hover:text-white" to={"/login"}>
+            Log in
           </Link>
         </p>
         {/* Bottom row - ends */}

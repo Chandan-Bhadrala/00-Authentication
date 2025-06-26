@@ -2,6 +2,7 @@ import { Eye, Lock, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import Input from "../components/Input";
 import { useForm } from "react-hook-form";
+import { useLoginUserMutation } from "../features/auth/authApi";
 
 const Login = () => {
   // Setting up react-hook-form
@@ -17,7 +18,7 @@ const Login = () => {
   };
 
   // RTK POST Query to login user.
- const [
+  const [
     loginUser,
     {
       data: loginData,
