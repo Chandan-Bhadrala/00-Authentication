@@ -22,3 +22,38 @@ TODO:
 - Add functionality to check for "username availability" on spot in FE. ChatGPt, on how to achieve this behavior.
 
 - Create a super admin route, who can convert any user into an admin or back to user.
+
+## **1. Daily Tasks.**
+
+‌
+Left this app on the 28.06.2025. On wiring the FE to BE.
+
+1. 📅 28.06.2025
+   1. All controllers regarding BE Authentication is done.
+   2. Leaving behind wiring of FE with BE. To move & to start onto Twitter Clone.
+2. 📅 27.06.2025
+   1. :white_check_mark:  Today, I need to get the user data from the Verify User & login page to RTK query & send to the API endpoint, for testing purpose.
+   2. 🪁👋Create Zod Schema validation File. To validate user i/p on FE & BE too.
+   3. 🪁👋 Add validation in React hook form too. For user visualization even before submitting the form.
+   4. 🪁👋 Ask Chat GPT, on how to crop/set image before uploading like in WhatsApp. And how to tell user to submit photo of small mb im in FE. Once user upload large size photo.
+3. 📅 26.06.2025
+   1. :white_check_mark: Create Register & Login UI for the Twitter.
+   2. :white_check_mark:  Start writing logics in your FE regarding Redux Store & RTK Query.
+      1. Redux Store to store user Authenticated status. To show him home page.
+      2. RTK Query setup to make API Calls.
+         1. Basic RTK setup done. 📌🧩 Tomorrow, I need to get the user data from the register, login RTK query & send to the api endpoint, for testing purpose.
+         2. Completed wiring of Register FE & BE.
+4. 📅 25.06.2025
+   1. :white_check_mark: As of now, I’ve to create change password & forgot password controller.
+   2. :white_check_mark:  Forgot Password controller pending.
+   3. :arrows_counterclockwise: 📌🧩Start writing logics in your FE regarding Redux Store & RTK Query.
+
+---
+
+## 2. Add
+
+‌
+
+1. Docker
+2. CICD
+3. Deploy on Vercel
