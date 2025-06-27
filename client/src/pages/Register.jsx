@@ -1,13 +1,22 @@
 import { Eye, Lock, Mail, Upload, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import { useRegisterUserMutation } from "../features/auth/authApi";
 
+import { useDispatch } from "react-redux";
+import { userLoggedIn } from "../features/auth/authSlice";
+
 const Register = () => {
-  // 00. Way to show uploaded Avatar-Image.
+  // 00a1. Variable to store Image src Url in the preview variable (Avatar-Image).
   const [preview, setPreview] = useState(null);
+
+  // 00b1. Need to dispatch info on successful login in the auth-slice state.
+  const dispatch = useDispatch();
+
+  // 00c1. Needed to navigate user to verify-email page.
+  const navigate = useNavigate();
 
   // 01. Setting up react-hook-form
   const {
@@ -27,25 +36,39 @@ const Register = () => {
       formData.append("password", data.password);
       formData.append("confirmPassword", data.confirmPassword);
 
+      // 00a3. Appending user file into the formData, only if it exists. To send to the server, to further store it in the Cloudinary.
       if (data.avatarFile && data.avatarFile[0]) {
         formData.append("avatarFile", data.avatarFile[0]);
       }
-      for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-      }
+
+      // for (let pair of formData.entries()) {
+      //   console.log(pair[0], pair[1]);
+      // }
 
       const userData = await registerUser(formData).unwrap();
+
+      // 00b2. Dispatch user info in the Redux state.
+      dispatch(
+        userLoggedIn({
+          user: userData.data,
+          accessToken: userData.meta?.accessToken,
+        })
+      );
+
+      // 00c2. Navigating user to verify-email page
+      navigate("/verify-email");
       console.log("User registered:", userData);
     } catch (err) {
       console.error("Registration failed:", err);
     }
   };
 
-  // 02b. Watch the avatar field to update preview
+  // 00a4. Watch the avatarFile in React-hook Form for any change. If there is change detected in the avatarFile, then save it (avatarFile details) in the fileWatch variable.
   const fileWatch = watch("avatarFile");
 
   useEffect(() => {
     if (fileWatch && fileWatch[0]) {
+      // 00a5.Create a local url from the avatarFile parent variable "fileWatch" to be stored in the preview variable. As preview is the variable that is set as src in the avatar image tag.
       const imageUrl = URL.createObjectURL(fileWatch[0]);
       setPreview(imageUrl);
     }
@@ -73,6 +96,7 @@ const Register = () => {
         </p>
         <div className="relative p-4 flex justify-center">
           <label className="cursor-pointer" htmlFor="avatar-upload">
+            {/* 00a6. On based of preview variable, either show img tag or the image placeholder */}
             {preview ? (
               <img
                 src={preview}
@@ -95,6 +119,7 @@ const Register = () => {
         {/* Input section - starts */}
         {/* "handleSubmit" will validate your inputs before invoking "onSubmit" */}
         <form onSubmit={handleSubmit(onSubmit)}>
+          {/* 00a2. Taking user file input & storing it (file) in the register field of react-hook-form */}
           <input
             id="avatar-upload"
             type="file"

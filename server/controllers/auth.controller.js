@@ -4,7 +4,7 @@ import { sendError } from "../utils/sendError.js";
 import { sendResponse } from "../utils/sendResponse.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { generateOTP } from "../utils/tokenGenerator.js";
-import { sendEmail } from "../utils/sendEmail.js";
+import { sendEmail } from "../utils/sendEmailResend.js";
 import { verificationEmailHTML } from "../emailTemplates/verificationEmail.js";
 import { createJWT } from "../middleware/jwt.middleware.js";
 import {
@@ -211,6 +211,9 @@ export const verifyEmail = asyncHandler(async (req, res) => {
     statusCode: 200,
     message: "User verified successfully",
     data: user,
+    meta: {
+      accessToken,
+    },
   });
 });
 
@@ -361,6 +364,9 @@ export const login = asyncHandler(async (req, res) => {
       statusCode: 200,
       message: "User logged in successfully",
       data: user,
+      meta: {
+        accessToken,
+      },
     });
   } catch (error) {
     console.log(error, "Internal server error while registering user.");
@@ -587,6 +593,9 @@ export const resetForgotPassword = asyncHandler(async (req, res) => {
     statusCode: 200,
     message: "User logged in successfully",
     data: user,
+    meta: {
+      accessToken,
+    },
   });
 });
 

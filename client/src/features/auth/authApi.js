@@ -9,8 +9,16 @@ export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
     baseUrl: USER_API,
-    credentials: "include",
+    credentials: "include", // for refresh token in cookie
+    prepareHeaders: (headers, { getState }) => {
+      const token = getState().auth?.accessToken; // get token from Redux slice
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+      return headers;
+    },
   }),
+  tagTypes: ["User"], // optional: helps with caching & invalidation
   endpoints: (builder) => ({
     registerUser: builder.mutation({
       // Api Call to register the user.
@@ -32,8 +40,14 @@ export const authApi = createApi({
       // Updating the Redux State with the received Data from the above API.
       async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
-          const result = await queryFulfilled;
-          dispatch(userLoggedIn({ user: result.data.data }));
+          const { data } = await queryFulfilled;
+          // console.log(data);
+          dispatch(
+            userLoggedIn({
+              user: data.data,
+              accessToken: data.meta?.accessToken,
+            })
+          );
         } catch (error) {
           console.log(error);
         }
@@ -42,14 +56,19 @@ export const authApi = createApi({
 
     loadUser: builder.query({
       // Api Call to get the user profile details.
-      query: () => ({ url: "profile", method: "GET" }),
+      query: () => ({ url: "user-profile", method: "GET" }),
 
       // Updating the Redux State with the received Data from the above API.
       async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
-          const result = await queryFulfilled;
+          const { result } = await queryFulfilled;
           // console.log(result.data.data);
-          dispatch(userLoggedIn({ user: result.data.data }));
+          dispatch(
+            userLoggedIn({
+              user: result.data,
+              accessToken: result.meta?.accessToken,
+            })
+          );
         } catch (error) {
           console.log(error);
         }
@@ -69,15 +88,6 @@ export const authApi = createApi({
         }
       },
     }),
-    updateUser: builder.mutation({
-      // Api Call to update the user profile details.
-      query: (formData) => ({
-        url: "profile/update",
-        method: "PUT",
-        body: formData,
-        credentials: "include",
-      }),
-    }),
   }),
 });
 
@@ -85,6 +95,7 @@ export const {
   useRegisterUserMutation,
   useLoginUserMutation,
   useLoadUserQuery,
+  useLazyLoadUserQuery, // ✅ for manual trigger
   useUpdateUserMutation,
   useLogoutMutation,
 } = authApi;

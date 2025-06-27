@@ -8,10 +8,3 @@ export const store = configureStore({
     defaultMiddleware().concat(authApi.middleware),
 });
 
-// Below code, fetches user data to check/authenticate, if user tokens are stored in the headers or cookies.
-// const initializeApp = async () => {
-//   await store.dispatch(
-//     authApi.endpoints.loadUser.initiate({}, { forceRefetch: true })
-//   );
-// };
-// initializeApp();

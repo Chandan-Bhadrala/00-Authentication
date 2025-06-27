@@ -74,7 +74,10 @@ const userSchema = new mongoose.Schema(
         delete ret.password;
         delete ret.refreshToken;
         delete ret.emailVerifyToken;
+        delete ret.emailVerifyTokenExpiry;
         delete ret.forgotPasswordVerifyToken;
+        delete ret.forgotPasswordTokenExpiry;
+        delete ret.tokenResendCoolDownExpiry;
         delete ret.__v;
         return ret;
       },
