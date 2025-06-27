@@ -18,7 +18,9 @@ import { signupLimiter } from "../middleware/rateLimiter.middleware.js";
 const router = Router();
 
 router.post("/register", signupLimiter, upload.single("avatarFile"), register);
-router.post("/verify-email", verifyEmail);
+
+// upload.none() is required below, if sending formData w/o a file. Better to send plain JSON, if i/p data doesn't have a file.
+router.post("/verify-email", upload.none(), verifyEmail);
 router.post("/resend-verify-email", resendEmailVerificationToken);
 router.post("/login", login);
 router.get("/logout", verifyJWT, logout);

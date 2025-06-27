@@ -29,6 +29,15 @@ export const authApi = createApi({
         formData: true,
       }),
     }),
+    verifyEmail: builder.mutation({
+      // Api Call to verify the user Email.
+      query: (formData) => ({
+        url: "verify-email",
+        method: "POST",
+        body: formData,
+        formData: true,
+      }),
+    }),
     loginUser: builder.mutation({
       // Api Call to login the user.
       query: (inputData) => ({
@@ -93,6 +102,7 @@ export const authApi = createApi({
 
 export const {
   useRegisterUserMutation,
+  useVerifyEmailMutation,
   useLoginUserMutation,
   useLoadUserQuery,
   useLazyLoadUserQuery, // ✅ for manual trigger

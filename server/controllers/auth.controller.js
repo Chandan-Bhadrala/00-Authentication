@@ -157,9 +157,9 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   // a. "email verification token" &
   // b. "user email" from the req object sent by the FE.
 
-  const { UserEmail, emailVerifyToken } = req.body;
-
-  if (!UserEmail || !emailVerifyToken) {
+  const { userEmail, emailVerifyToken } = req.body;
+  console.log(userEmail, emailVerifyToken);
+  if (!userEmail || !emailVerifyToken) {
     return sendError(res, {
       statusCode: 400,
       message: "Missing user email or email verification token.",
@@ -169,7 +169,7 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   // 02. Fetch the user details from the DB on the basis of the provided email in the req object.
 
   const userDetailsFromDB = await User.findOne({
-    email: UserEmail.toLowerCase(),
+    email: userEmail.toLowerCase(),
   }).select("+fullName +username +email +avatarURL +emailVerifyToken +role");
   if (!userDetailsFromDB) {
     return sendError(res, {
