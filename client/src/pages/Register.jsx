@@ -1,32 +1,29 @@
+// Updated Register.jsx with cropping feature
 import { Eye, Lock, Mail, Upload, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import { useRegisterUserMutation } from "../features/auth/authApi";
-
 import { useDispatch } from "react-redux";
 import { userLoggedIn } from "../features/auth/authSlice";
+import ImageCropper from "../components/ImageCropper"; // 🆕
 
 const Register = () => {
-  // 00a1. Variable to store Image src Url in the preview variable (Avatar-Image).
-  const [preview, setPreview] = useState(null);
-
-  // 00b1. Need to dispatch info on successful login in the auth-slice state.
-  const dispatch = useDispatch();
-
-  // 00c1. Needed to navigate user to verify-email page.
-  const navigate = useNavigate();
-
-  // 01. Setting up react-hook-form
   const {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
   } = useForm();
 
-  // 02a. Form submission handler
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const [preview, setPreview] = useState(null);
+  const [croppedFile, setCroppedFile] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [rawImage, setRawImage] = useState(null);
+
   const onSubmit = async (data) => {
     try {
       const formData = new FormData();
@@ -34,20 +31,10 @@ const Register = () => {
       formData.append("username", data.username);
       formData.append("email", data.email);
       formData.append("password", data.password);
-      formData.append("confirmPassword", data.confirmPassword);
+      if (croppedFile) formData.append("avatarFile", croppedFile);
 
-      // 00a3. Appending user file into the formData, only if it exists. To send to the server, to further store it in the Cloudinary.
-      if (data.avatarFile && data.avatarFile[0]) {
-        formData.append("avatarFile", data.avatarFile[0]);
-      }
+      const userData = await useRegisterUserMutation(formData).unwrap();
 
-      // for (let pair of formData.entries()) {
-      //   console.log(pair[0], pair[1]);
-      // }
-
-      const userData = await registerUser(formData).unwrap();
-
-      // 00b2. Dispatch user info in the Redux state.
       dispatch(
         userLoggedIn({
           user: userData.data,
@@ -55,52 +42,41 @@ const Register = () => {
         })
       );
 
-      // 00c2. Navigating user to verify-email page
       navigate("/verify-email");
-      console.log("User registered:", userData);
     } catch (err) {
       console.error("Registration failed:", err);
     }
   };
 
-  // 00a4. Watch the avatarFile in React-hook Form for any change. If there is change detected in the avatarFile, then save it (avatarFile details) in the fileWatch variable.
-  const fileWatch = watch("avatarFile");
-
-  useEffect(() => {
-    if (fileWatch && fileWatch[0]) {
-      // 00a5.Create a local url from the avatarFile parent variable "fileWatch" to be stored in the preview variable. As preview is the variable that is set as src in the avatar image tag.
-      const imageUrl = URL.createObjectURL(fileWatch[0]);
-      setPreview(imageUrl);
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setRawImage(imageUrl);
+      setShowCropper(true);
     }
-  }, [fileWatch]);
+  };
 
-  // 03. RTK POST Query to register user.
-  const [
-    registerUser,
-    {
-      data: registerData,
-      error: registerError,
-      isLoading: registerIsLoading,
-      isSuccess: registerIsSuccess,
-    },
-  ] = useRegisterUserMutation();
+  const handleCropComplete = ({ blob, fileUrl }) => {
+    setPreview(fileUrl);
+    setCroppedFile(new File([blob], "avatar.jpg", { type: blob.type }));
+    setShowCropper(false);
+  };
 
   return (
-    <main className="flex bg-black justify-center items-center min-h-screen ">
-      {/* Card - starts */}
-      <div className="text-center bg-gray-700/70 backdrop-blur-md w-full max-w-md p-4 rounded-lg ">
-        {/* Top row - starts */}
-        <div className=" font-bold text-2xl text-[#f2ebeb]">Create account</div>
+    <main className="flex bg-black justify-center items-center min-h-screen">
+      <div className="text-center bg-gray-700/70 backdrop-blur-md w-full max-w-md p-4 rounded-lg">
+        <div className="font-bold text-2xl text-[#f2ebeb]">Create account</div>
         <p className="text-gray-400">
           Sign up to get started with your account
         </p>
+
         <div className="relative p-4 flex justify-center">
-          <label className="cursor-pointer" htmlFor="avatar-upload">
-            {/* 00a6. On based of preview variable, either show img tag or the image placeholder */}
+          <label htmlFor="avatar-upload" className="cursor-pointer">
             {preview ? (
               <img
                 src={preview}
-                alt="Uploaded Avatar"
+                alt="Avatar"
                 className="w-24 h-24 rounded-full object-cover"
               />
             ) : (
@@ -109,24 +85,20 @@ const Register = () => {
               </div>
             )}
           </label>
-
           <div className="absolute top-24 left-60 bg-gray-600 rounded-full p-2">
             <Upload color="white" size={"12"} />
           </div>
         </div>
-        {/* Top row - ends */}
 
-        {/* Input section - starts */}
-        {/* "handleSubmit" will validate your inputs before invoking "onSubmit" */}
         <form onSubmit={handleSubmit(onSubmit)}>
-          {/* 00a2. Taking user file input & storing it (file) in the register field of react-hook-form */}
           <input
             id="avatar-upload"
             type="file"
             accept="image/*"
             className="hidden"
-            {...register("avatarFile")}
+            onChange={handleImageChange}
           />
+
           <Input
             label="Full Name"
             Placeholder="Enter your full name"
@@ -152,34 +124,74 @@ const Register = () => {
             Icon2={Eye}
             {...register("password")}
           />
-          <Input
-            label="Confirm Password"
-            Placeholder="Confirm your password"
-            Icon={Lock}
-            Icon2={Eye}
-            {...register("confirmPassword")}
-          />
           <button
-            className="text-[#f2ebeb] bg-gray-500 w-full rounded-lg p-2 cursor-pointer"
+            className="text-[#f2ebeb] bg-gray-500 w-full rounded-lg p-2"
             type="submit"
           >
             Create account
           </button>
         </form>
-        {/* Input section - ends */}
 
-        {/* Bottom row - starts */}
-        <p className="text-[#f2ebeb] mt-4 text-md ">
+        <p className="text-[#f2ebeb] mt-4 text-md">
           Already have an account?{" "}
-          <Link className="text-blue-400 hover:text-white" to={"/login"}>
+          <Link className="text-blue-400 hover:text-white" to="/login">
             Log in
           </Link>
         </p>
-        {/* Bottom row - ends */}
       </div>
-      {/* Card - ends */}
+
+      {showCropper && rawImage && (
+        <ImageCropper
+          image={rawImage}
+          onCropComplete={handleCropComplete}
+          onCancel={() => setShowCropper(false)}
+        />
+      )}
     </main>
   );
 };
 
 export default Register;
+
+// A way to extract image url to store it in a preview variable without React-hook-form.
+
+// import { useState } from "react";
+
+// const Register = () => {
+//   const [avatarFile, setAvatarFile] = useState(null);   // Holds the actual file
+//   const [preview, setPreview] = useState(null);         // Holds the image URL
+
+//   const handleFileChange = (e) => {
+//     const file = e.target.files?.[0];
+//     if (file) {
+//       setAvatarFile(file);                         // Save the file for upload
+//       setPreview(URL.createObjectURL(file));       // Create local preview URL
+//     }
+//   };
+
+//   return (
+//     <div>
+//       <label htmlFor="avatar-upload" className="cursor-pointer">
+//         {preview ? (
+//           <img
+//             src={preview}
+//             alt="Avatar Preview"
+//             className="w-24 h-24 rounded-full object-cover"
+//           />
+//         ) : (
+//           <div className="w-24 h-24 bg-gray-500 rounded-full flex items-center justify-center text-white">
+//             Upload
+//           </div>
+//         )}
+//       </label>
+
+//       <input
+//         id="avatar-upload"
+//         type="file"
+//         accept="image/*"
+//         className="hidden"
+//         onChange={handleFileChange} // ✅ This is what extracts the local file
+//       />
+//     </div>
+//   );
+// };
